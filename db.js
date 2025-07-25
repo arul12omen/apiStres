@@ -1,7 +1,6 @@
-import sqlite3 from 'sqlite3';
-sqlite3.verbose();
+import Database from 'better-sqlite3';
 
-const db = new sqlite3.Database('./students.db');
+const db = new Database('./students.db');
 
 db.serialize(() => {
 
