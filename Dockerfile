@@ -1,18 +1,31 @@
 FROM node:18
 
-# Install Python dan alat build C/C++ yang dibutuhkan numpy / scikit-learn
-RUN apt-get update && \
-    apt-get install -y python3 python3-pip python3-dev build-essential gcc g++ make && \
-    pip3 install --no-cache-dir numpy scikit-learn
+# Install Python, pip, venv, dan libGL (jika pakai OpenCV)
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    python3-dev \
+    build-essential \
+    libgl1 \
+    gcc \
+    g++
 
-# Set direktori kerja
+# Buat virtual environment Python
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Set working directory
 WORKDIR /app
 
-# Copy seluruh file project
+# Copy semua file project
 COPY . .
 
-# Install dependensi Node.js
+# Install dependency Node.js
 RUN npm install
 
-# Jalankan server
+# Install dependency Python di virtual environment
+RUN pip install --no-cache-dir numpy scikit-learn pandas
+
+# Jalankan server Node.js
 CMD ["node", "server.js"]
