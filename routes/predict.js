@@ -8,7 +8,7 @@ router.post('/', (req, res) => {
   const { study, extracurricular, sleep, social, physical, gpa, user_id } = req.body;
 
   const input = [study, extracurricular, sleep, social, physical, gpa].map(String);
-  const py = spawn('python', ['svm_predict.py', ...input]);
+  const py = spawn('python3', ['svm_predict.py', ...input]);
 
   let result = '';
   let errorOccurred = false;
