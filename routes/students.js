@@ -3,22 +3,31 @@ import db from '../db.js';
 
 const router = express.Router();
 
+// GET all student lifestyle data
 router.get('/', (req, res) => {
-  db.all("SELECT * FROM students", [], (err, rows) => {
-    if (err) return res.status(500).json({ error: err.message });
+  try {
+    const rows = db.prepare("SELECT * FROM students").all();
     res.json(rows);
-  });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
+// POST new student lifestyle data
 router.post('/', (req, res) => {
   const { study, extracurricular, sleep, social, physical, gpa } = req.body;
-  db.run(`INSERT INTO students (study, extracurricular, sleep, social, physical, gpa) 
-          VALUES (?, ?, ?, ?, ?, ?)`,
-    [study, extracurricular, sleep, social, physical, gpa],
-    function (err) {
-      if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, message: 'Student lifestyle data added' });
-    });
+
+  try {
+    const stmt = db.prepare(`
+      INSERT INTO students (study, extracurricular, sleep, social, physical, gpa) 
+      VALUES (?, ?, ?, ?, ?, ?)
+    `);
+    const info = stmt.run(study, extracurricular, sleep, social, physical, gpa);
+
+    res.json({ id: info.lastInsertRowid, message: 'Student lifestyle data added' });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;
