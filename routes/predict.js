@@ -19,18 +19,24 @@ router.post('/', (req, res) => {
     result += data.toString();
   });
 
-  py.stderr.on('data', (data) => {
-  errorOccurred = true;
-  console.error("Python stderr:", data.toString()); // tambahkan ini
+ let stderrOutput = '';
+
+py.stderr.on('data', (data) => {
+  const msg = data.toString();
+  stderrOutput += msg;
+
+  // Hanya tandai error jika stderr berisi error sebenarnya (bukan warning)
+  if (msg.includes("Error:")) {
+    errorOccurred = true;
+  }
+
+  console.error("Python stderr:", msg);
 });
 
-
-  py.on('close', (code) => {
-  console.log("Python process exited with code:", code);
-  console.log("Prediction result:", result.trim());
-
+py.on('close', (code) => {
   if (code === 0 && !errorOccurred) {
     const prediction = result.trim();
+    console.log("Prediction result:", prediction);
 
     try {
       if (user_id) {
@@ -48,9 +54,11 @@ router.post('/', (req, res) => {
       res.status(500).json({ error: 'Failed to save history' });
     }
   } else {
-    res.status(500).json({ error: 'Prediction failed or invalid input' });
+    res.status(500).json({
+      error: 'Prediction failed or invalid input',
+      details: stderrOutput
+    });
   }
 });
 });
-
 export default router;
