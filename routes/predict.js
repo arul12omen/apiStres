@@ -20,33 +20,37 @@ router.post('/', (req, res) => {
   });
 
   py.stderr.on('data', (data) => {
-    errorOccurred = true;
-    console.error(`stderr: ${data}`);
-  });
+  errorOccurred = true;
+  console.error("Python stderr:", data.toString()); // tambahkan ini
+});
+
 
   py.on('close', (code) => {
-    if (code === 0 && !errorOccurred) {
-      const prediction = result.trim();
+  console.log("Python process exited with code:", code);
+  console.log("Prediction result:", result.trim());
 
-      try {
-        if (user_id) {
-          const stmt = db.prepare(`
-            INSERT INTO history 
-              (user_id, study, extracurricular, sleep, social, physical, gpa, result)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-          `);
-          stmt.run(user_id, study, extracurricular, sleep, social, physical, gpa, prediction);
-        }
+  if (code === 0 && !errorOccurred) {
+    const prediction = result.trim();
 
-        res.json({ prediction });
-      } catch (err) {
-        console.error('DB error:', err);
-        res.status(500).json({ error: 'Failed to save history' });
+    try {
+      if (user_id) {
+        const stmt = db.prepare(`
+          INSERT INTO history 
+            (user_id, study, extracurricular, sleep, social, physical, gpa, result)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+        stmt.run(user_id, study, extracurricular, sleep, social, physical, gpa, prediction);
       }
-    } else {
-      res.status(500).json({ error: 'Prediction failed or invalid input' });
+
+      res.json({ prediction });
+    } catch (err) {
+      console.error('DB error:', err);
+      res.status(500).json({ error: 'Failed to save history' });
     }
-  });
+  } else {
+    res.status(500).json({ error: 'Prediction failed or invalid input' });
+  }
+});
 });
 
 export default router;
