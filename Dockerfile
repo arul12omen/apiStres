@@ -1,18 +1,16 @@
-# Gunakan image Node.js resmi
+# Gunakan base image Node.js
 FROM node:18
 
-# Install Python dan pip
-RUN apt-get update && apt-get install -y python3 python3-pip
+# Install Python 3 dan pip + library yang dibutuhkan langsung
+RUN apt-get update && \
+    apt-get install -y python3 python3-pip && \
+    pip3 install --no-cache-dir numpy scikit-learn
 
 # Set working directory
 WORKDIR /app
 
-# Salin file aplikasi
+# Salin semua file project ke dalam container
 COPY . .
-
-# Install dependency Python
-COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
 
 # Install dependency Node.js
 RUN npm install
