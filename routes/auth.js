@@ -50,4 +50,40 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Change Password
+router.post('/change-password', async (req, res) => {
+  const { username, oldPassword, newPassword, confirmPassword } = req.body;
+
+  try {
+    // Cek apakah user ada
+    const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Verifikasi password lama
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ error: 'Old password is incorrect' });
+    }
+
+    // Cek konfirmasi password baru
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: 'New passwords do not match' });
+    }
+
+    // Hash password baru
+    const newHashed = await bcrypt.hash(newPassword, 10);
+
+    // Update di database
+    db.prepare('UPDATE users SET password = ? WHERE username = ?').run(newHashed, username);
+
+    res.json({ message: 'Password changed successfully' });
+  } catch (err) {
+    console.error('Change password error:', err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+
 export default router;
