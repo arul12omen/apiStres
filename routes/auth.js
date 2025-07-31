@@ -19,7 +19,7 @@ router.post('/register', async (req, res) => {
 
     // Simpan user baru
     const stmt = db.prepare('INSERT INTO users (username, password, nama) VALUES (?, ?, ?)');
-    const info = stmt.run(username, hashed);
+    const info = stmt.run(username, hashed, nama);
 
     res.json({ id: info.lastInsertRowid, message: 'User registered' });
   } catch (err) {
